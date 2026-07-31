@@ -48,7 +48,7 @@ export function SignupForm() {
       }),
     );
     if (signupRestaurantThunk.fulfilled.match(result)) {
-      router.push("/");
+      router.push("/painel");
     }
   }
 

@@ -1,8 +1,16 @@
 export { Button } from "./Button";
-export type { ButtonProps } from "./Button";
+export type { ButtonLinkProps, ButtonProps } from "./Button";
 export { Card } from "./Card";
 export type { CardProps } from "./Card";
+export { FeatureCard } from "./FeatureCard";
+export type { FeatureCardProps } from "./FeatureCard";
 export { Input } from "./Input";
 export type { InputProps } from "./Input";
+export { Mascot } from "./Mascot";
+export type { MascotProps, MascotVariant } from "./Mascot";
+export { MascotMessage } from "./MascotMessage";
+export type { MascotMessageProps } from "./MascotMessage";
+export { SpeechBubble } from "./SpeechBubble";
+export type { SpeechBubbleProps } from "./SpeechBubble";
 export { Text } from "./Text";
 export type { TextProps } from "./Text";

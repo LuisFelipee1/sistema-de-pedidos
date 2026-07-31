@@ -22,7 +22,7 @@ export function LoginForm() {
     event.preventDefault();
     const result = await dispatch(loginThunk({ username, password }));
     if (loginThunk.fulfilled.match(result)) {
-      router.push("/");
+      router.push("/painel");
     }
   }
 

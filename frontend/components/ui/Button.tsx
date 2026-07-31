@@ -1,18 +1,14 @@
 "use client";
 
 import { motion, type HTMLMotionProps } from "framer-motion";
+import Link from "next/link";
 import { forwardRef } from "react";
 import { FiLoader } from "react-icons/fi";
 
 type ButtonVariant = "primary" | "secondary" | "ghost";
 type ButtonSize = "md" | "lg";
 
-export interface ButtonProps extends Omit<HTMLMotionProps<"button">, "children"> {
-  variant?: ButtonVariant;
-  size?: ButtonSize;
-  isLoading?: boolean;
-  children: React.ReactNode;
-}
+const MotionLink = motion.create(Link);
 
 const variantClasses: Record<ButtonVariant, string> = {
   primary: "bg-accent text-accent-ink shadow-sm shadow-accent/30",
@@ -25,19 +21,64 @@ const sizeClasses: Record<ButtonSize, string> = {
   lg: "h-13 px-6 text-base",
 };
 
-export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ variant = "primary", size = "md", isLoading, className = "", children, disabled, ...props }, ref) => {
+const baseClassName = `inline-flex items-center justify-center gap-2 rounded-xl font-medium
+  transition-colors duration-200 ease-out disabled:cursor-not-allowed disabled:opacity-60`;
+
+const hoverAnimation = {
+  whileHover: { scale: 1.02, y: -1 },
+  whileTap: { scale: 0.97 },
+  transition: { type: "spring" as const, stiffness: 400, damping: 22 },
+};
+
+interface SharedProps {
+  variant?: ButtonVariant;
+  size?: ButtonSize;
+  isLoading?: boolean;
+  children: React.ReactNode;
+}
+
+export interface ButtonLinkProps
+  extends SharedProps,
+    Omit<HTMLMotionProps<"a">, keyof SharedProps | "href"> {
+  href: string;
+}
+
+export interface ButtonProps
+  extends SharedProps,
+    Omit<HTMLMotionProps<"button">, keyof SharedProps | "href"> {
+  href?: undefined;
+}
+
+type Props = ButtonProps | ButtonLinkProps;
+
+export const Button = forwardRef<HTMLButtonElement | HTMLAnchorElement, Props>(
+  ({ variant = "primary", size = "md", isLoading, className = "", children, ...props }, ref) => {
+    const classes = `${baseClassName} ${variantClasses[variant]} ${sizeClasses[size]} ${className}`;
+
+    if (props.href) {
+      const { href, ...anchorProps } = props;
+      return (
+        <MotionLink
+          ref={ref as React.Ref<HTMLAnchorElement>}
+          href={href}
+          className={classes}
+          {...hoverAnimation}
+          {...anchorProps}
+        >
+          {isLoading && <FiLoader className="animate-spin" aria-hidden />}
+          {children}
+        </MotionLink>
+      );
+    }
+
+    const { disabled, ...buttonProps } = props as ButtonProps;
     return (
       <motion.button
-        ref={ref}
-        whileHover={{ scale: disabled || isLoading ? 1 : 1.02, y: disabled || isLoading ? 0 : -1 }}
-        whileTap={{ scale: disabled || isLoading ? 1 : 0.97 }}
-        transition={{ type: "spring", stiffness: 400, damping: 22 }}
+        ref={ref as React.Ref<HTMLButtonElement>}
         disabled={disabled || isLoading}
-        className={`inline-flex items-center justify-center gap-2 rounded-xl font-medium
-          transition-colors duration-200 ease-out disabled:cursor-not-allowed disabled:opacity-60
-          ${variantClasses[variant]} ${sizeClasses[size]} ${className}`}
-        {...props}
+        className={classes}
+        {...(disabled || isLoading ? {} : hoverAnimation)}
+        {...buttonProps}
       >
         {isLoading && <FiLoader className="animate-spin" aria-hidden />}
         {children}

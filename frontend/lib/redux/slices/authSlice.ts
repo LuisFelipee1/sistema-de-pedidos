@@ -12,6 +12,8 @@ interface AuthState {
   refreshToken: string | null;
   status: "idle" | "loading" | "succeeded" | "failed";
   error: string | null;
+  /** true assim que a checagem inicial de sessão (localStorage -> /me) terminou */
+  initialized: boolean;
 }
 
 const initialState: AuthState = {
@@ -22,6 +24,7 @@ const initialState: AuthState = {
   refreshToken: null,
   status: "idle",
   error: null,
+  initialized: false,
 };
 
 function persistTokens(access: string, refresh: string): void {
@@ -63,6 +66,25 @@ export const loginThunk = createAsyncThunk(
   },
 );
 
+/** Roda uma vez no carregamento do app: se houver token salvo, revalida contra /me. */
+export const restoreSessionThunk = createAsyncThunk(
+  "auth/restoreSession",
+  async (_: void, { rejectWithValue }) => {
+    if (typeof window === "undefined") return rejectWithValue("no-window");
+    const access = window.localStorage.getItem("access_token");
+    const refresh = window.localStorage.getItem("refresh_token");
+    if (!access || !refresh) return rejectWithValue("no-token");
+
+    try {
+      const me = await fetchMe();
+      return { tokens: { access, refresh }, me };
+    } catch (error) {
+      clearTokens();
+      return rejectWithValue(extractErrorMessage(error));
+    }
+  },
+);
+
 const authSlice = createSlice({
   name: "auth",
   initialState,
@@ -90,6 +112,7 @@ const authSlice = createSlice({
         state.refreshToken = action.payload.tokens.refresh;
         state.restaurant = action.payload.tokens.restaurant;
         state.roles = action.payload.me.roles;
+        state.username = action.meta.arg.username;
       })
       .addCase(signupRestaurantThunk.rejected, (state, action) => {
         state.status = "failed";
@@ -109,6 +132,16 @@ const authSlice = createSlice({
       .addCase(loginThunk.rejected, (state, action) => {
         state.status = "failed";
         state.error = (action.payload as string) ?? "Usuário ou senha inválidos.";
+      })
+      .addCase(restoreSessionThunk.fulfilled, (state, action) => {
+        state.initialized = true;
+        state.accessToken = action.payload.tokens.access;
+        state.refreshToken = action.payload.tokens.refresh;
+        state.username = action.payload.me.username;
+        state.roles = action.payload.me.roles;
+      })
+      .addCase(restoreSessionThunk.rejected, (state) => {
+        state.initialized = true;
       });
   },
 });
