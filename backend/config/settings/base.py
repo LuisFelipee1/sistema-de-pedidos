@@ -33,6 +33,7 @@ DJANGO_APPS = [
 THIRD_PARTY_APPS = [
     "rest_framework",
     "rest_framework_simplejwt",
+    "rest_framework_simplejwt.token_blacklist",
     "corsheaders",
     "drf_spectacular",
 ]
@@ -141,3 +142,10 @@ SPECTACULAR_SETTINGS = {
 
 # CORS — origens do frontend (Vercel em produção, localhost em dev).
 CORS_ALLOWED_ORIGINS = env.list("CORS_ALLOWED_ORIGINS", default=[])
+
+# Mercado Pago — credencial de fallback da plataforma; cada restaurante
+# tem a própria conta via RestaurantPaymentAccount (split de pagamento).
+MERCADO_PAGO_ACCESS_TOKEN = env("MERCADO_PAGO_ACCESS_TOKEN", default="")
+MERCADO_PAGO_WEBHOOK_URL = env("MERCADO_PAGO_WEBHOOK_URL", default="")
+MERCADO_PAGO_CLIENT_ID = env("MERCADO_PAGO_CLIENT_ID", default="")
+MERCADO_PAGO_OAUTH_REDIRECT_URI = env("MERCADO_PAGO_OAUTH_REDIRECT_URI", default="")

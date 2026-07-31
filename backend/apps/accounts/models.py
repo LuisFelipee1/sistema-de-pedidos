@@ -14,6 +14,9 @@ class User(AbstractUser):
         help_text="Obrigatório para Funcionário/Administrador.",
     )
 
+    def has_role(self, code: str) -> bool:
+        return self.user_roles.filter(role__code=code).exists()
+
 
 class Role(models.Model):
     code = models.SlugField(max_length=50, unique=True)

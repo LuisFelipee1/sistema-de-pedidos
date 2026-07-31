@@ -23,10 +23,24 @@ from drf_spectacular.views import (
     SpectacularSwaggerView,
 )
 
+from apps.accounts.urls import auth_urlpatterns
+
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     path("api/docs/", SpectacularSwaggerView.as_view(url_name="schema"), name="docs"),
+    # Staff autenticado (restaurante inferido do JWT do usuário)
+    path("api/auth/", include(auth_urlpatterns)),
+    path("api/", include("apps.accounts.urls")),
+    path("api/", include("apps.menu.urls")),
+    path("api/", include("apps.tables.urls")),
+    path("api/", include("apps.orders.urls")),
+    path("api/", include("apps.payments.urls")),
+    # Público, sem login (restaurante identificado pelo slug na URL)
+    path("api/r/<slug:slug>/", include("apps.menu.public_urls")),
+    path("api/r/<slug:slug>/", include("apps.tables.public_urls")),
+    path("api/r/<slug:slug>/", include("apps.orders.public_urls")),
+    path("api/r/<slug:slug>/", include("apps.payments.public_urls")),
 ]
 
 if settings.DEBUG:
