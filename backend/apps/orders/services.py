@@ -102,6 +102,69 @@ def replace_items(order: Order, items_data: list[dict]) -> Order:
     return order
 
 
+def kitchen_queue(restaurant) -> list[dict]:
+    """Mesas ocupadas com pedido na cozinha, uma entrada por mesa.
+
+    A cozinha raciocina por mesa, não por comanda: se o garçom lançou dois
+    pedidos para a mesma mesa, tudo sai junto. O status da mesa é o menos
+    avançado entre os pedidos dela — nada está pronto enquanto falta algo.
+    """
+    orders = (
+        Order.objects.filter(
+            restaurant=restaurant,
+            table__isnull=False,
+            table__status=Table.Status.OCUPADA,
+            current_status__code__in=statuses.KITCHEN_STATUSES,
+        )
+        .select_related("current_status", "table")
+        .prefetch_related("items")
+        .order_by("created_at")
+    )
+
+    grouped: dict[int, dict] = {}
+    for order in orders:
+        table = order.table
+        if table is None:  # o filtro acima já garante, mas o FK é opcional
+            continue
+        entry = grouped.setdefault(
+            table.pk, {"table": table, "orders": [], "total": Decimal("0")}
+        )
+        entry["orders"].append(order)
+        entry["total"] += order.total_amount
+
+    for entry in grouped.values():
+        entry["status"] = min(
+            (order.current_status.code for order in entry["orders"]),
+            key=statuses.KITCHEN_STATUSES.index,
+        )
+        entry["waiting_since"] = entry["orders"][0].created_at
+
+    return sorted(grouped.values(), key=lambda entry: entry["waiting_since"])
+
+
+@transaction.atomic
+def set_kitchen_status(user, table: Table, new_status_code: str) -> list[Order]:
+    """Move todos os pedidos de cozinha da mesa para o mesmo status.
+
+    Diferente de `transition_status`, aqui é permitido voltar (de "pronto" para
+    "preparando", por exemplo). Marcar pronto sem querer no meio do serviço é
+    comum, e exigir um administrador para desfazer travaria a cozinha.
+    """
+    if new_status_code not in statuses.KITCHEN_STATUSES:
+        raise InvalidTransitionError(f"'{new_status_code}' não é um status de cozinha.")
+
+    new_status = _status(new_status_code)
+    updated = []
+    for order in table.orders.filter(current_status__code__in=statuses.KITCHEN_STATUSES):
+        if order.current_status_id == new_status.pk:
+            continue
+        order.current_status = new_status
+        order.save(update_fields=["current_status", "updated_at"])
+        order.status_history.create(status=new_status, changed_by=user)
+        updated.append(order)
+    return updated
+
+
 def open_orders_for_table(table: Table):
     """Pedidos que ainda compõem a conta da mesa."""
     return (

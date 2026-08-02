@@ -3,6 +3,8 @@ from django.urls import path
 from .views import (
     AdvanceStatusView,
     CancelOrderView,
+    KitchenQueueView,
+    KitchenTableStatusView,
     OrderItemsUpdateView,
     OrderQueueView,
     OrderTrackView,
@@ -15,6 +17,12 @@ order_list = OrderViewSet.as_view({"get": "list"})
 order_detail = OrderViewSet.as_view({"get": "retrieve"})
 
 urlpatterns = [
+    path("kitchen/queue/", KitchenQueueView.as_view(), name="kitchen-queue"),
+    path(
+        "kitchen/tables/<int:table_id>/status/",
+        KitchenTableStatusView.as_view(),
+        name="kitchen-table-status",
+    ),
     path("orders/presencial/", PresencialOrderCreateView.as_view(), name="order-presencial-create"),
     path("orders/queue/", OrderQueueView.as_view(), name="order-queue"),
     path("orders/track/<uuid:tracking_token>/", OrderTrackView.as_view(), name="order-track"),

@@ -21,6 +21,10 @@ SEED = [
     (CANCELADO, "Cancelado", 80),
 ]
 
+# Etapas que a cozinha controla, em ordem de avanço. A tela da cozinha lista
+# esses pedidos e permite andar livremente entre eles.
+KITCHEN_STATUSES = [NA_FILA, EM_PREPARACAO, PRONTO]
+
 # Status em que o pedido ainda pesa na conta da mesa. Fechar a conta finaliza
 # todos eles de uma vez, independente de onde a cozinha parou.
 OPEN_STATUSES = [

@@ -7,6 +7,8 @@ from rest_framework.views import APIView
 
 from apps.accounts.permissions import IsAdministrador, IsCozinha, IsGarcom
 from apps.restaurants.mixins import RestaurantFromSlugMixin, RestaurantScopedQuerysetMixin
+from apps.tables.models import Table
+from apps.tables.serializers import TableSerializer
 
 from . import services, statuses
 from .models import Order
@@ -83,6 +85,44 @@ class OrderQueueView(RestaurantScopedQuerysetMixin, ListAPIView):
     queryset = Order.objects.filter(
         current_status__code__in=[statuses.NA_FILA, statuses.EM_PREPARACAO]
     )
+
+
+def _serialize_kitchen_queue(restaurant) -> list[dict]:
+    return [
+        {
+            "table": TableSerializer(entry["table"]).data,
+            "status": entry["status"],
+            "total": str(entry["total"]),
+            "waiting_since": entry["waiting_since"],
+            "orders": OrderSerializer(entry["orders"], many=True).data,
+        }
+        for entry in services.kitchen_queue(restaurant)
+    ]
+
+
+class KitchenQueueView(APIView):
+    """Fila da cozinha agrupada por mesa."""
+
+    permission_classes = [IsCozinha]
+
+    def get(self, request):
+        return Response(_serialize_kitchen_queue(request.user.restaurant))
+
+
+class KitchenTableStatusView(APIView):
+    permission_classes = [IsCozinha]
+
+    def post(self, request, table_id):
+        table = get_object_or_404(
+            Table, pk=table_id, restaurant_id=request.user.restaurant_id
+        )
+        try:
+            services.set_kitchen_status(request.user, table, request.data.get("status", ""))
+        except services.InvalidTransitionError as exc:
+            raise ValidationError(str(exc)) from exc
+        # Devolve a fila já atualizada para a tela da cozinha não precisar de
+        # uma segunda requisição para se redesenhar.
+        return Response(_serialize_kitchen_queue(request.user.restaurant))
 
 
 class AdvanceStatusView(APIView):
