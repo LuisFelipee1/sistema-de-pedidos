@@ -1,8 +1,16 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 
-import { createTable, deleteTable, listTables, updateTable } from "@/lib/api/tables";
+import {
+  createTable,
+  deleteTable,
+  listTables,
+  updateTable,
+  updateTableStatus,
+} from "@/lib/api/tables";
 import { extractErrorMessage } from "@/lib/api/errors";
-import type { RestaurantTable, TablePayload } from "@/types/tables";
+import type { RestaurantTable, TablePayload, TableStatus } from "@/types/tables";
+
+import { createPresencialOrderThunk } from "./ordersSlice";
 
 interface TablesState {
   items: RestaurantTable[];
@@ -55,6 +63,18 @@ export const updateTableThunk = createAsyncThunk(
   },
 );
 
+/** Usado pelo garçom: só troca o status, sem exigir permissão de administrador. */
+export const updateTableStatusThunk = createAsyncThunk(
+  "tables/updateStatus",
+  async ({ id, status }: { id: number; status: TableStatus }, { rejectWithValue }) => {
+    try {
+      return await updateTableStatus(id, status);
+    } catch (error) {
+      return rejectWithValue(extractErrorMessage(error));
+    }
+  },
+);
+
 export const deleteTableThunk = createAsyncThunk(
   "tables/delete",
   async (id: number, { rejectWithValue }) => {
@@ -94,6 +114,16 @@ const tablesSlice = createSlice({
       .addCase(updateTableThunk.fulfilled, (state, action) => {
         const index = state.items.findIndex((item) => item.id === action.payload.id);
         if (index !== -1) state.items[index] = action.payload;
+      })
+      .addCase(updateTableStatusThunk.fulfilled, (state, action) => {
+        const index = state.items.findIndex((item) => item.id === action.payload.id);
+        if (index !== -1) state.items[index] = action.payload;
+      })
+      .addCase(createPresencialOrderThunk.fulfilled, (state, action) => {
+        // O backend marca a mesa como ocupada ao receber o pedido; espelhamos
+        // aqui para a tela não ficar mostrando "Livre" logo após o envio.
+        const index = state.items.findIndex((item) => item.id === action.payload.table);
+        if (index !== -1) state.items[index].status = "ocupada";
       })
       .addCase(deleteTableThunk.fulfilled, (state, action) => {
         state.items = state.items.filter((item) => item.id !== action.payload);

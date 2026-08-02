@@ -13,7 +13,12 @@ export interface NavItem {
 
 export const NAV_ITEMS: NavItem[] = [
   { href: "/painel", label: "Dashboard", icon: FiHome, roles: ["administrador", "garcom", "cozinha"] },
-  { href: "/painel/mesas", label: "Mesas", icon: MdOutlineTableRestaurant, roles: ["administrador"] },
+  {
+    href: "/painel/mesas",
+    label: "Mesas",
+    icon: MdOutlineTableRestaurant,
+    roles: ["administrador", "garcom"],
+  },
   {
     href: "/painel/cardapio/categorias",
     label: "Categorias",
