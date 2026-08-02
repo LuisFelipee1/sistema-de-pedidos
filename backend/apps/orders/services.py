@@ -80,6 +80,17 @@ def create_presencial_order(user, data: dict) -> Order:
     )
     order.total_amount = _build_items(order, data["items"])
     order.save(update_fields=["total_amount"])
+
+    # Uma mesa que acabou de receber pedido está ocupada por definição.
+    if table.status != Table.Status.OCUPADA:
+        table.status = Table.Status.OCUPADA
+        table.save(update_fields=["status"])
+
+    # Enviar junto com a criação mantém tudo na mesma transação: no celular do
+    # garçom, uma segunda request poderia falhar e deixar o pedido preso fora
+    # da fila da cozinha.
+    if data.get("send_to_kitchen"):
+        order = transition_status(order, statuses.NA_FILA, changed_by=user)
     return order
 
 

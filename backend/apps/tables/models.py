@@ -5,7 +5,7 @@ class Table(models.Model):
     class Status(models.TextChoices):
         LIVRE = "livre", "Livre"
         OCUPADA = "ocupada", "Ocupada"
-        AGUARDANDO_PAGAMENTO = "aguardando_pagamento", "Aguardando pagamento"
+        DESATIVADA = "desativada", "Desativada"
 
     restaurant = models.ForeignKey(
         "restaurants.Restaurant", on_delete=models.CASCADE, related_name="tables"

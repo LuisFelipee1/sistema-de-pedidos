@@ -1,7 +1,7 @@
 from rest_framework import permissions, viewsets
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 
-from apps.accounts.permissions import IsAdministrador
+from apps.accounts.permissions import IsAdministrador, IsRestaurantStaff
 from apps.restaurants.mixins import RestaurantFromSlugMixin, RestaurantScopedQuerysetMixin
 
 from .models import AddonGroup, AddonOption, Category, Product
@@ -46,15 +46,27 @@ class PublicProductDetailView(RestaurantFromSlugMixin, RetrieveAPIView):
 # --- Administração (staff autenticado) ---
 
 
-class CategoryViewSet(RestaurantScopedQuerysetMixin, viewsets.ModelViewSet):
+class StaffReadsAdminWritesMixin:
+    """Qualquer funcionário precisa consultar o cardápio para montar um pedido,
+    mas só o administrador pode alterá-lo."""
+
+    def get_permissions(self):
+        if self.action in ("list", "retrieve"):
+            return [IsRestaurantStaff()]
+        return [IsAdministrador()]
+
+
+class CategoryViewSet(
+    StaffReadsAdminWritesMixin, RestaurantScopedQuerysetMixin, viewsets.ModelViewSet
+):
     serializer_class = CategorySerializer
-    permission_classes = [IsAdministrador]
     queryset = Category.objects.all()
 
 
-class ProductViewSet(RestaurantScopedQuerysetMixin, viewsets.ModelViewSet):
+class ProductViewSet(
+    StaffReadsAdminWritesMixin, RestaurantScopedQuerysetMixin, viewsets.ModelViewSet
+):
     serializer_class = ProductSerializer
-    permission_classes = [IsAdministrador]
     queryset = Product.objects.all()
 
 

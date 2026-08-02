@@ -93,7 +93,8 @@ class OnlineOrderCreateSerializer(serializers.Serializer):
 class PresencialOrderCreateSerializer(serializers.Serializer):
     table_id = serializers.IntegerField()
     notes = serializers.CharField(required=False, allow_blank=True)
-    items = OrderItemInputSerializer(many=True)
+    items = OrderItemInputSerializer(many=True, allow_empty=False)
+    send_to_kitchen = serializers.BooleanField(default=False)
 
 
 class OrderItemsReplaceSerializer(serializers.Serializer):
