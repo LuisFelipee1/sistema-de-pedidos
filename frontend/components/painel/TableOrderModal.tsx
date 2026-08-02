@@ -1,12 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { FiSend } from "react-icons/fi";
+import { FiCheckCircle, FiSend } from "react-icons/fi";
 
 import { Button, Select, Text } from "@/components/ui";
 import { formatCurrency } from "@/lib/format";
-import { useAppDispatch } from "@/lib/redux/hooks";
-import { createPresencialOrderThunk } from "@/lib/redux/slices/ordersSlice";
+import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks";
+import {
+  closeTableAccountThunk,
+  createPresencialOrderThunk,
+  fetchTableAccountThunk,
+} from "@/lib/redux/slices/ordersSlice";
 import { updateTableStatusThunk } from "@/lib/redux/slices/tablesSlice";
 import type { Category, Product } from "@/types/menu";
 import type { DraftOrderItem } from "@/types/orders";
@@ -17,6 +21,7 @@ import {
   type TableStatus,
 } from "@/types/tables";
 
+import { CloseAccountDialog } from "./CloseAccountDialog";
 import { OrderDraftList, draftItemCount, draftTotal } from "./OrderDraftList";
 import { ObservationSheet, type ObservationPick, type ObservationResult } from "./ObservationSheet";
 import { ProductPicker } from "./ProductPicker";
@@ -27,6 +32,8 @@ export interface TableOrderModalProps {
   categories: Category[];
   onClose: () => void;
   onSuccess: (message: string) => void;
+  /** Dispara a comemoração de tela cheia depois que a conta é fechada. */
+  onAccountClosed: (total: string) => void;
 }
 
 /** Produto aguardando a folha de observações. `draftKey` presente = estamos
@@ -45,15 +52,48 @@ export function TableOrderModal({
   categories,
   onClose,
   onSuccess,
+  onAccountClosed,
 }: TableOrderModalProps) {
   const dispatch = useAppDispatch();
+  const { account, accountStatus } = useAppSelector((state) => state.orders);
   const [status, setStatus] = useState<TableStatus>(table.status);
   const [draft, setDraft] = useState<DraftOrderItem[]>([]);
   const [pending, setPending] = useState<PendingPick | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [isConfirmingClose, setIsConfirmingClose] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
+  const [closeError, setCloseError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const isDisabled = status === "desativada";
+  // Fechar conta é sobre o estado real da mesa no servidor, não sobre o status
+  // que o garçom acabou de escolher no select e ainda não salvou.
+  const canCloseAccount = table.status === "ocupada";
+
+  function openCloseConfirmation() {
+    setCloseError(null);
+    setIsConfirmingClose(true);
+    dispatch(fetchTableAccountThunk(table.id));
+  }
+
+  async function handleCloseAccount() {
+    setIsClosing(true);
+    setCloseError(null);
+    try {
+      const result = await dispatch(closeTableAccountThunk(table.id)).unwrap();
+      setIsConfirmingClose(false);
+      onClose();
+      // Só comemora depois que o servidor confirmou — a animação nunca decide
+      // se a conta foi fechada ou não.
+      onAccountClosed(result.total);
+    } catch (thrown) {
+      setCloseError(
+        typeof thrown === "string" ? thrown : "Não foi possível finalizar. Tente de novo.",
+      );
+    } finally {
+      setIsClosing(false);
+    }
+  }
 
   function handleStatusChange(next: TableStatus) {
     setStatus(next);
@@ -190,6 +230,16 @@ export function TableOrderModal({
             <Text variant="label">Adicionar ao pedido</Text>
             <ProductPicker products={products} categories={categories} onPick={pickProduct} />
           </div>
+
+          {canCloseAccount && (
+            <div className="flex flex-col gap-2 border-t border-border pt-4">
+              <Text variant="label">Encerrar atendimento</Text>
+              <Button type="button" variant="success" size="lg" onClick={openCloseConfirmation}>
+                <FiCheckCircle size={18} />
+                Finalizar pedido
+              </Button>
+            </div>
+          )}
         </>
       )}
 
@@ -221,6 +271,17 @@ export function TableOrderModal({
         pick={pending}
         onConfirm={confirmPending}
         onCancel={() => setPending(null)}
+      />
+
+      <CloseAccountDialog
+        isOpen={isConfirmingClose}
+        tableNumber={table.number}
+        account={account?.table === table.id ? account : null}
+        isLoadingAccount={accountStatus === "loading"}
+        isClosing={isClosing}
+        error={closeError}
+        onConfirm={handleCloseAccount}
+        onCancel={() => setIsConfirmingClose(false)}
       />
     </div>
   );

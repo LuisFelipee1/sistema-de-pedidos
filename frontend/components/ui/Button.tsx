@@ -5,7 +5,7 @@ import Link from "next/link";
 import { forwardRef } from "react";
 import { FiLoader } from "react-icons/fi";
 
-type ButtonVariant = "primary" | "secondary" | "ghost";
+type ButtonVariant = "primary" | "secondary" | "ghost" | "success";
 type ButtonSize = "md" | "lg";
 
 const MotionLink = motion.create(Link);
@@ -14,6 +14,7 @@ const variantClasses: Record<ButtonVariant, string> = {
   primary: "bg-accent text-accent-ink shadow-sm shadow-accent/30",
   secondary: "bg-transparent text-ink border border-ink/20 hover:border-ink/40",
   ghost: "bg-transparent text-accent hover:bg-accent/10",
+  success: "bg-success text-white shadow-lg shadow-success/40 hover:brightness-110",
 };
 
 const sizeClasses: Record<ButtonSize, string> = {

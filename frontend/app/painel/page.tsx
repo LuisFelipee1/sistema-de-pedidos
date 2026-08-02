@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 
+import { FinishedOrdersPanel } from "@/components/painel/FinishedOrdersPanel";
 import { visibleNavItems } from "@/components/painel/nav-items";
 import { FeatureCard, MascotMessage, Text } from "@/components/ui";
 import { useAppSelector } from "@/lib/redux/hooks";
@@ -32,6 +33,9 @@ export default function PainelPage() {
           </Link>
         ))}
       </div>
+
+      {/* A listagem de pedidos é restrita a administrador no backend. */}
+      {isAdmin && <FinishedOrdersPanel />}
     </div>
   );
 }

@@ -10,7 +10,7 @@ import {
 import { extractErrorMessage } from "@/lib/api/errors";
 import type { RestaurantTable, TablePayload, TableStatus } from "@/types/tables";
 
-import { createPresencialOrderThunk } from "./ordersSlice";
+import { closeTableAccountThunk, createPresencialOrderThunk } from "./ordersSlice";
 
 interface TablesState {
   items: RestaurantTable[];
@@ -124,6 +124,11 @@ const tablesSlice = createSlice({
         // aqui para a tela não ficar mostrando "Livre" logo após o envio.
         const index = state.items.findIndex((item) => item.id === action.payload.table);
         if (index !== -1) state.items[index].status = "ocupada";
+      })
+      .addCase(closeTableAccountThunk.fulfilled, (state, action) => {
+        // O backend devolve a mesa já liberada depois de fechar a conta.
+        const index = state.items.findIndex((item) => item.id === action.payload.table.id);
+        if (index !== -1) state.items[index] = action.payload.table;
       })
       .addCase(deleteTableThunk.fulfilled, (state, action) => {
         state.items = state.items.filter((item) => item.id !== action.payload);

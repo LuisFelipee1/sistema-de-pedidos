@@ -5,7 +5,16 @@ import { FiLoader, FiPlus } from "react-icons/fi";
 
 import { TableCard } from "@/components/painel/TableCard";
 import { TableOrderModal } from "@/components/painel/TableOrderModal";
-import { Button, FilterChips, Modal, Text, Toast, type FilterChipOption } from "@/components/ui";
+import {
+  Button,
+  FilterChips,
+  Modal,
+  SuccessBurst,
+  Text,
+  Toast,
+  type FilterChipOption,
+} from "@/components/ui";
+import { formatCurrency } from "@/lib/format";
 import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks";
 import { fetchCategoriesThunk } from "@/lib/redux/slices/categoriesSlice";
 import { fetchProductsThunk } from "@/lib/redux/slices/productsSlice";
@@ -29,6 +38,7 @@ export default function MesasPage() {
   const [openToken, setOpenToken] = useState(0);
   const [isCreating, setIsCreating] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  const [closedTotal, setClosedTotal] = useState<string | null>(null);
 
   useEffect(() => {
     dispatch(fetchTablesThunk());
@@ -136,9 +146,19 @@ export default function MesasPage() {
             categories={categories}
             onClose={() => setIsModalOpen(false)}
             onSuccess={setToast}
+            onAccountClosed={setClosedTotal}
           />
         )}
       </Modal>
+
+      <SuccessBurst
+        isVisible={closedTotal !== null}
+        label={`Conta finalizada — ${formatCurrency(closedTotal ?? 0)}`}
+        onComplete={() => {
+          setClosedTotal(null);
+          setToast("Mesa liberada e conta registrada.");
+        }}
+      />
 
       <Toast message={toast} onDismiss={() => setToast(null)} />
     </div>

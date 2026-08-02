@@ -22,6 +22,8 @@ export { Select } from "./Select";
 export type { SelectProps } from "./Select";
 export { SpeechBubble } from "./SpeechBubble";
 export type { SpeechBubbleProps } from "./SpeechBubble";
+export { SuccessBurst } from "./SuccessBurst";
+export type { SuccessBurstProps } from "./SuccessBurst";
 export { Switch } from "./Switch";
 export type { SwitchProps } from "./Switch";
 export { Text } from "./Text";

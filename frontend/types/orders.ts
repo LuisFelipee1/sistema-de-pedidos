@@ -32,6 +32,11 @@ export interface OrderItem {
   notes: string;
 }
 
+export interface OrderStatusHistoryEntry {
+  status: string;
+  changed_at: string;
+}
+
 export interface Order {
   id: number;
   restaurant: number;
@@ -44,5 +49,18 @@ export interface Order {
   notes: string;
   tracking_token: string;
   items: OrderItem[];
+  status_history: OrderStatusHistoryEntry[];
   created_at: string;
+}
+
+/** Conta aberta de uma mesa — o que o garçom confirma antes de finalizar. */
+export interface TableAccount {
+  table: number;
+  total: string;
+  orders: Order[];
+}
+
+export interface CloseAccountResult {
+  orders_closed: number;
+  total: string;
 }
