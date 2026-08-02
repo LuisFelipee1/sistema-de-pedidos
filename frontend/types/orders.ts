@@ -64,3 +64,30 @@ export interface CloseAccountResult {
   orders_closed: number;
   total: string;
 }
+
+/** Etapas que a cozinha controla, na ordem em que avançam. */
+export type KitchenStatus = "na_fila" | "em_preparacao" | "pronto";
+
+export const KITCHEN_STATUS_LABELS: Record<KitchenStatus, string> = {
+  na_fila: "Aguardando preparo",
+  em_preparacao: "Preparando",
+  pronto: "Pronto",
+};
+
+export const KITCHEN_STATUS_ORDER: KitchenStatus[] = ["na_fila", "em_preparacao", "pronto"];
+
+/** Uma mesa na fila da cozinha, com todos os pedidos dela juntos. */
+export interface KitchenQueueEntry {
+  table: RestaurantTableRef;
+  status: KitchenStatus;
+  total: string;
+  waiting_since: string;
+  orders: Order[];
+}
+
+interface RestaurantTableRef {
+  id: number;
+  restaurant: number;
+  number: number;
+  status: string;
+}

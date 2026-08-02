@@ -3,6 +3,7 @@ import { configureStore } from "@reduxjs/toolkit";
 import authReducer from "./slices/authSlice";
 import categoriesReducer from "./slices/categoriesSlice";
 import employeesReducer from "./slices/employeesSlice";
+import kitchenReducer from "./slices/kitchenSlice";
 import ordersReducer from "./slices/ordersSlice";
 import productsReducer from "./slices/productsSlice";
 import tablesReducer from "./slices/tablesSlice";
@@ -15,6 +16,7 @@ export const store = configureStore({
     products: productsReducer,
     employees: employeesReducer,
     orders: ordersReducer,
+    kitchen: kitchenReducer,
   },
 });
 

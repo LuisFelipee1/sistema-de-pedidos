@@ -1,5 +1,5 @@
 import type { IconType } from "react-icons";
-import { FaBoxOpen, FaUserGroup } from "react-icons/fa6";
+import { FaBoxOpen, FaKitchenSet, FaUserGroup } from "react-icons/fa6";
 import { FiHome } from "react-icons/fi";
 import { MdOutlineCategory, MdOutlineTableRestaurant } from "react-icons/md";
 
@@ -26,6 +26,13 @@ export const NAV_ITEMS: NavItem[] = [
     icon: MdOutlineTableRestaurant,
     roles: ["administrador", "garcom"],
     description: "Veja o salão, mude o status e anote pedidos.",
+  },
+  {
+    href: "/painel/cozinha",
+    label: "Cozinha",
+    icon: FaKitchenSet,
+    roles: ["administrador", "cozinha"],
+    description: "Acompanhe os pedidos das mesas e o preparo.",
   },
   {
     href: "/painel/cardapio/categorias",

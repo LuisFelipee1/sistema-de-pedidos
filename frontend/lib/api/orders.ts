@@ -1,6 +1,8 @@
 import type { PaginatedResponse } from "@/types/common";
 import type {
   CloseAccountResult,
+  KitchenQueueEntry,
+  KitchenStatus,
   Order,
   PresencialOrderPayload,
   TableAccount,
@@ -24,6 +26,23 @@ export async function closeTableAccount(
 ): Promise<CloseAccountResult & { table: RestaurantTable }> {
   const { data } = await apiClient.post<CloseAccountResult & { table: RestaurantTable }>(
     `/api/tables/${tableId}/account/`,
+  );
+  return data;
+}
+
+export async function fetchKitchenQueue(): Promise<KitchenQueueEntry[]> {
+  const { data } = await apiClient.get<KitchenQueueEntry[]>("/api/kitchen/queue/");
+  return data;
+}
+
+/** Devolve a fila já atualizada, poupando um segundo fetch na tela da cozinha. */
+export async function setKitchenStatus(
+  tableId: number,
+  status: KitchenStatus,
+): Promise<KitchenQueueEntry[]> {
+  const { data } = await apiClient.post<KitchenQueueEntry[]>(
+    `/api/kitchen/tables/${tableId}/status/`,
+    { status },
   );
   return data;
 }

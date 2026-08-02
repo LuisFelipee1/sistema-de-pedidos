@@ -1,9 +1,11 @@
 export { Badge } from "./Badge";
-export type { BadgeProps, BadgeTone } from "./Badge";
+export type { BadgeProps, BadgeSize, BadgeTone } from "./Badge";
 export { Button } from "./Button";
 export type { ButtonLinkProps, ButtonProps } from "./Button";
 export { Card } from "./Card";
 export type { CardProps } from "./Card";
+export { ConfirmDialog } from "./ConfirmDialog";
+export type { ConfirmDialogProps } from "./ConfirmDialog";
 export { DataTable } from "./DataTable";
 export type { Column, DataTableProps } from "./DataTable";
 export { FeatureCard } from "./FeatureCard";

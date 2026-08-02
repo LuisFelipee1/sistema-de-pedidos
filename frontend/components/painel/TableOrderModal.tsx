@@ -230,16 +230,6 @@ export function TableOrderModal({
             <Text variant="label">Adicionar ao pedido</Text>
             <ProductPicker products={products} categories={categories} onPick={pickProduct} />
           </div>
-
-          {canCloseAccount && (
-            <div className="flex flex-col gap-2 border-t border-border pt-4">
-              <Text variant="label">Encerrar atendimento</Text>
-              <Button type="button" variant="success" size="lg" onClick={openCloseConfirmation}>
-                <FiCheckCircle size={18} />
-                Finalizar pedido
-              </Button>
-            </div>
-          )}
         </>
       )}
 
@@ -265,6 +255,12 @@ export function TableOrderModal({
             Salvar
           </Button>
         </div>
+        {canCloseAccount && !isDisabled && (
+          <Button type="button" variant="success" size="lg" onClick={openCloseConfirmation}>
+            <FiCheckCircle size={18} />
+            Finalizar pedido
+          </Button>
+        )}
       </div>
 
       <ObservationSheet
