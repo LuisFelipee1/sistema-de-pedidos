@@ -9,14 +9,14 @@ import { Text } from "@/components/ui";
 import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks";
 import { logout } from "@/lib/redux/slices/authSlice";
 
-import { NAV_ITEMS } from "./nav-items";
+import { visibleNavItems } from "./nav-items";
 
 export function Sidebar() {
   const pathname = usePathname();
   const dispatch = useAppDispatch();
   const { username, roles } = useAppSelector((state) => state.auth);
 
-  const visibleItems = NAV_ITEMS.filter((item) => item.roles.some((role) => roles.includes(role)));
+  const visibleItems = visibleNavItems(roles);
 
   return (
     <aside className="flex h-screen w-64 shrink-0 flex-col border-r border-border bg-surface px-4 py-6">

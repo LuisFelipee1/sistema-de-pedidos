@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 
 import { useAppSelector } from "@/lib/redux/hooks";
 
-import { NAV_ITEMS } from "./nav-items";
+import { visibleNavItems } from "./nav-items";
 
 /** Barra inferior do mobile: o garçom segura o celular com uma mão só, então a
  * navegação fica na altura do polegar em vez de escondida atrás de um menu. */
@@ -13,7 +13,7 @@ export function MobileNav() {
   const pathname = usePathname();
   const roles = useAppSelector((state) => state.auth.roles);
 
-  const visibleItems = NAV_ITEMS.filter((item) => item.roles.some((role) => roles.includes(role)));
+  const visibleItems = visibleNavItems(roles);
 
   return (
     <nav

@@ -1,55 +1,34 @@
 "use client";
 
 import Link from "next/link";
-import { FaBoxOpen, FaUserGroup } from "react-icons/fa6";
-import { MdOutlineCategory, MdOutlineTableRestaurant } from "react-icons/md";
 
+import { visibleNavItems } from "@/components/painel/nav-items";
 import { FeatureCard, MascotMessage, Text } from "@/components/ui";
 import { useAppSelector } from "@/lib/redux/hooks";
 
-const QUICK_LINKS = [
-  {
-    icon: MdOutlineTableRestaurant,
-    title: "Mesas",
-    description: "Cadastre e organize as mesas do seu restaurante.",
-    href: "/painel/mesas",
-  },
-  {
-    icon: MdOutlineCategory,
-    title: "Categorias",
-    description: "Organize o cardápio em categorias.",
-    href: "/painel/cardapio/categorias",
-  },
-  {
-    icon: FaBoxOpen,
-    title: "Produtos",
-    description: "Cadastre os produtos, preços e adicionais.",
-    href: "/painel/cardapio/produtos",
-  },
-  {
-    icon: FaUserGroup,
-    title: "Funcionários",
-    description: "Adicione garçons e cozinha, com a função certa.",
-    href: "/painel/funcionarios",
-  },
-];
-
 export default function PainelPage() {
-  const { username } = useAppSelector((state) => state.auth);
+  const { username, roles } = useAppSelector((state) => state.auth);
+  const isAdmin = roles.includes("administrador");
+
+  // Reaproveita a mesma lista da navegação: um atalho aqui nunca pode apontar
+  // para uma tela que o cargo não enxerga no menu.
+  const quickLinks = visibleNavItems(roles).filter((item) => item.description);
 
   return (
-    <div className="flex flex-col gap-10">
+    <div className="flex flex-col gap-8 md:gap-10">
       <MascotMessage variant="happy" size={100}>
         <Text variant="body">
-          Oi, <strong>{username}</strong>! Antes de operar pedidos, vamos configurar seu
-          restaurante — comece cadastrando mesas e cardápio.
+          Oi, <strong>{username}</strong>!{" "}
+          {isAdmin
+            ? "Antes de operar pedidos, vamos configurar seu restaurante — comece cadastrando mesas e cardápio."
+            : "Tudo pronto para o serviço. Abra as mesas para anotar os pedidos."}
         </Text>
       </MascotMessage>
 
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
-        {QUICK_LINKS.map((link) => (
+        {quickLinks.map((link) => (
           <Link key={link.href} href={link.href}>
-            <FeatureCard icon={link.icon} title={link.title} description={link.description} />
+            <FeatureCard icon={link.icon} title={link.label} description={link.description!} />
           </Link>
         ))}
       </div>
