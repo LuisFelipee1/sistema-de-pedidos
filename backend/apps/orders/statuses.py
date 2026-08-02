@@ -21,6 +21,17 @@ SEED = [
     (CANCELADO, "Cancelado", 80),
 ]
 
+# Status em que o pedido ainda pesa na conta da mesa. Fechar a conta finaliza
+# todos eles de uma vez, independente de onde a cozinha parou.
+OPEN_STATUSES = [
+    AGUARDANDO_PAGAMENTO,
+    PAGAMENTO_APROVADO,
+    PEDIDO_RECEBIDO,
+    NA_FILA,
+    EM_PREPARACAO,
+    PRONTO,
+]
+
 ALLOWED_TRANSITIONS: dict[str, set[str]] = {
     AGUARDANDO_PAGAMENTO: {PAGAMENTO_APROVADO, CANCELADO},
     PAGAMENTO_APROVADO: {PEDIDO_RECEBIDO, CANCELADO},

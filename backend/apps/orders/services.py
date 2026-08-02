@@ -102,6 +102,46 @@ def replace_items(order: Order, items_data: list[dict]) -> Order:
     return order
 
 
+def open_orders_for_table(table: Table):
+    """Pedidos que ainda compõem a conta da mesa."""
+    return (
+        table.orders.filter(current_status__code__in=statuses.OPEN_STATUSES)
+        .select_related("current_status")
+        .prefetch_related("items")
+    )
+
+
+def table_account_total(table: Table) -> Decimal:
+    return sum(
+        (order.total_amount for order in open_orders_for_table(table)), start=Decimal("0")
+    )
+
+
+@transaction.atomic
+def close_table_account(user, table: Table) -> dict:
+    """Fecha a conta: finaliza todos os pedidos abertos e libera a mesa.
+
+    Não passa por `transition_status` de propósito. Fechar a conta é uma decisão
+    comercial que vale de qualquer ponto do fluxo — o cliente pagou e foi embora,
+    mesmo que a cozinha ainda tivesse o pedido na fila. Abrir esses atalhos em
+    ALLOWED_TRANSITIONS deixaria o "avançar status" da cozinha ambíguo.
+    """
+    orders = list(open_orders_for_table(table))
+    finalizado = _status(statuses.FINALIZADO)
+    total = Decimal("0")
+
+    for order in orders:
+        order.current_status = finalizado
+        order.save(update_fields=["current_status", "updated_at"])
+        order.status_history.create(status=finalizado, changed_by=user)
+        total += order.total_amount
+
+    table.status = Table.Status.LIVRE
+    table.save(update_fields=["status"])
+
+    return {"orders_closed": len(orders), "total": total}
+
+
 @transaction.atomic
 def transition_status(order: Order, new_status_code: str, changed_by=None) -> Order:
     current_code = order.current_status.code
