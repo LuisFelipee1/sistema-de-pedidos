@@ -1,6 +1,11 @@
 @import "tailwindcss";
 
 :root {
+  /* Faz os controles nativos (menu do select, scrollbar, checkbox, foco)
+     seguirem o tema. Sem isso o navegador desenha o menu do select em modo
+     claro mesmo com a página escura, e ele ignora as cores das options. */
+  color-scheme: light;
+
   --color-paper: #fff8f0;
   --color-surface: #ffffff;
   --color-ink: #2b2d42;
@@ -57,6 +62,8 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
+    color-scheme: dark;
+
     --color-paper: #1b1c27;
     --color-surface: #242534;
     --color-ink: #f2efea;
