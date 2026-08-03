@@ -64,6 +64,9 @@ export function ProductForm({ initialValue, categories, onSubmit, onCancel }: Pr
         value={categoryId}
         onChange={(event) => setCategoryId(event.target.value)}
         required
+        // Único select cuja lista cresce sem limite conforme o cardápio.
+        searchable
+        searchPlaceholder="Buscar categoria..."
       >
         {categories.length === 0 && <option value="">Crie uma categoria primeiro</option>}
         {categories.map((category) => (

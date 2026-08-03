@@ -74,3 +74,37 @@ body {
   color: var(--color-ink);
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
 }
+
+/* O Tailwind v4 deixou de aplicar cursor:pointer em botões por padrão. Uma
+   regra global evita ter que lembrar da classe em cada componente novo. */
+button:not(:disabled),
+summary,
+label[for],
+a[href],
+[role="button"]:not([aria-disabled="true"]),
+[role="option"]:not([aria-disabled="true"]),
+[role="checkbox"]:not(:disabled),
+select:not(:disabled),
+input[type="checkbox"]:not(:disabled),
+input[type="radio"]:not(:disabled),
+input[type="file"]:not(:disabled) {
+  cursor: pointer;
+}
+
+button:disabled,
+select:disabled,
+[role="checkbox"]:disabled,
+input:disabled {
+  cursor: not-allowed;
+}
+
+/* O menu nativo do select herda as cores do sistema, o que fica destoante no
+   tema escuro. Chrome e Firefox respeitam estas cores; o Safari ignora. */
+select option {
+  background-color: var(--color-surface);
+  color: var(--color-ink);
+}
+
+select option:disabled {
+  color: var(--color-ink-muted);
+}
