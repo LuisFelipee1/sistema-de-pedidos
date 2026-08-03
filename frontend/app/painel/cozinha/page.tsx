@@ -26,6 +26,21 @@ export default function CozinhaPage() {
   const [openToken, setOpenToken] = useState(0);
   const [toast, setToast] = useState<string | null>(null);
   const [now, setNow] = useState(() => Date.now());
+  /** Itens conferidos por mesa. Fica aqui, e não no modal, para o cozinheiro
+   * poder fechar o modal e olhar outra mesa sem perder o que já conferiu. */
+  const [checkedByTable, setCheckedByTable] = useState<Record<number, string[]>>({});
+
+  function toggleItem(tableId: number, itemKey: string) {
+    setCheckedByTable((current) => {
+      const keys = current[tableId] ?? [];
+      return {
+        ...current,
+        [tableId]: keys.includes(itemKey)
+          ? keys.filter((key) => key !== itemKey)
+          : [...keys, itemKey],
+      };
+    });
+  }
 
   useEffect(() => {
     dispatch(fetchKitchenQueueThunk());
@@ -92,6 +107,7 @@ export default function CozinhaPage() {
               <KitchenTableCard
                 entry={entry}
                 now={now}
+                checkedKeys={checkedByTable[entry.table.id] ?? []}
                 onSelect={(selected) => {
                   setSelectedTableId(selected.table.id);
                   setOpenToken((token) => token + 1);
@@ -112,6 +128,8 @@ export default function CozinhaPage() {
           <KitchenOrderModal
             key={openToken}
             entry={selectedEntry}
+            checkedKeys={checkedByTable[selectedEntry.table.id] ?? []}
+            onToggleItem={(itemKey) => toggleItem(selectedEntry.table.id, itemKey)}
             onClose={() => setIsModalOpen(false)}
             onSuccess={setToast}
           />

@@ -34,6 +34,16 @@ export function kitchenItems(entry: KitchenQueueEntry): KitchenItem[] {
   return [...merged.values()];
 }
 
+/** Itens conferidos considerando o status: mesa já pronta conta como tudo
+ * conferido, senão reabrir o modal de uma mesa pronta pediria conferir de novo. */
+export function effectiveCheckedKeys(
+  entry: KitchenQueueEntry,
+  checkedKeys: string[],
+): Set<string> {
+  if (entry.status === "pronto") return new Set(kitchenItems(entry).map((item) => item.key));
+  return new Set(checkedKeys);
+}
+
 /** Há quantos minutos a mesa está esperando — o dado que a cozinha usa para
  * decidir a ordem de preparo. */
 export function minutesWaiting(isoDate: string, now: number = Date.now()): number {

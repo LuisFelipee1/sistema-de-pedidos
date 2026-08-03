@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { FiCheck, FiClock } from "react-icons/fi";
 
 import { Badge } from "@/components/ui";
-import { formatWaiting, kitchenItems, minutesWaiting } from "@/lib/kitchen";
+import { effectiveCheckedKeys, formatWaiting, kitchenItems, minutesWaiting } from "@/lib/kitchen";
 import { KITCHEN_STATUS_LABELS, type KitchenQueueEntry } from "@/types/orders";
 
 import { KITCHEN_STATUS_SURFACE, KITCHEN_STATUS_TONE } from "./kitchen-status";
@@ -12,13 +12,16 @@ import { KITCHEN_STATUS_SURFACE, KITCHEN_STATUS_TONE } from "./kitchen-status";
 export interface KitchenTableCardProps {
   entry: KitchenQueueEntry;
   onSelect: (entry: KitchenQueueEntry) => void;
+  /** Itens já conferidos no modal — o card só mostra, quem marca é o modal. */
+  checkedKeys: string[];
   /** Recalculado pelo pai a cada tique, para o tempo de espera não congelar. */
   now: number;
 }
 
-export function KitchenTableCard({ entry, onSelect, now }: KitchenTableCardProps) {
+export function KitchenTableCard({ entry, onSelect, checkedKeys, now }: KitchenTableCardProps) {
   const items = kitchenItems(entry);
-  const isReady = entry.status === "pronto";
+  const checked = effectiveCheckedKeys(entry, checkedKeys);
+  const checkedCount = items.filter((item) => checked.has(item.key)).length;
 
   return (
     <motion.button
@@ -43,36 +46,47 @@ export function KitchenTableCard({ entry, onSelect, now }: KitchenTableCardProps
         </Badge>
       </div>
 
-      <div className="flex items-center gap-2 text-lg font-medium text-ink-muted">
-        <FiClock size={20} aria-hidden />
-        {formatWaiting(minutesWaiting(entry.waiting_since, now))}
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-lg font-medium text-ink-muted">
+        <span className="flex items-center gap-2">
+          <FiClock size={20} aria-hidden />
+          {formatWaiting(minutesWaiting(entry.waiting_since, now))}
+        </span>
+        <span className="tabular-nums">
+          {checkedCount}/{items.length} conferidos
+        </span>
       </div>
 
       <ul className="flex flex-col gap-2.5 border-t border-ink/10 pt-4">
-        {items.map((item) => (
-          <li key={item.key} className="flex items-start gap-3">
-            <span
-              aria-hidden
-              className={`mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-md border-2
-                ${isReady ? "border-success bg-success text-white" : "border-ink/30"}`}
-            >
-              {isReady && <FiCheck size={16} strokeWidth={3} />}
-            </span>
-            <span className="min-w-0 flex-1">
+        {items.map((item) => {
+          const isChecked = checked.has(item.key);
+          return (
+            <li key={item.key} className="flex items-start gap-3">
               <span
-                className={`block text-xl leading-tight font-semibold text-ink sm:text-2xl
-                  ${isReady ? "line-through opacity-60" : ""}`}
+                aria-hidden
+                className={`mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-md border-2
+                  ${isChecked ? "border-success bg-success text-white" : "border-ink/30"}`}
               >
-                {item.quantity}x {item.name}
+                {isChecked && <FiCheck size={16} strokeWidth={3} />}
               </span>
-              {item.notes && (
-                <span className="mt-1 block text-base font-medium text-danger italic sm:text-lg">
-                  {item.notes}
+              <span className="min-w-0 flex-1">
+                <span
+                  className={`block text-xl leading-tight font-semibold text-ink sm:text-2xl
+                    ${isChecked ? "line-through opacity-60" : ""}`}
+                >
+                  {item.quantity}x {item.name}
                 </span>
-              )}
-            </span>
-          </li>
-        ))}
+                {item.notes && (
+                  <span
+                    className={`mt-1 block text-base font-medium text-danger italic sm:text-lg
+                      ${isChecked ? "line-through opacity-60" : ""}`}
+                  >
+                    {item.notes}
+                  </span>
+                )}
+              </span>
+            </li>
+          );
+        })}
       </ul>
     </motion.button>
   );
