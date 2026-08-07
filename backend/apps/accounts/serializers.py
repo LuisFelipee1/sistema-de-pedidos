@@ -12,8 +12,17 @@ class RoleSerializer(serializers.ModelSerializer):
         fields = ["id", "code", "label"]
 
 
+class MeRestaurantSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Restaurant
+        fields = ["id", "name", "slug"]
+
+
 class MeSerializer(serializers.ModelSerializer):
     roles = serializers.SerializerMethodField()
+    # Aninhado por causa do slug: o painel precisa dele para montar o link da
+    # vitrine pública do próprio restaurante.
+    restaurant = MeRestaurantSerializer(read_only=True)
 
     class Meta:
         model = User
