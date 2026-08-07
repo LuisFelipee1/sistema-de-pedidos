@@ -14,9 +14,9 @@ import { visibleNavItems } from "./nav-items";
 export function Sidebar() {
   const pathname = usePathname();
   const dispatch = useAppDispatch();
-  const { username, roles } = useAppSelector((state) => state.auth);
+  const { username, roles, restaurant } = useAppSelector((state) => state.auth);
 
-  const visibleItems = visibleNavItems(roles);
+  const visibleItems = visibleNavItems(roles, restaurant?.slug);
 
   return (
     <aside className="flex h-screen w-64 shrink-0 flex-col border-r border-border bg-surface px-4 py-6">
@@ -37,6 +37,8 @@ export function Sidebar() {
             <Link
               key={item.href}
               href={item.href}
+              target={item.external ? "_blank" : undefined}
+              rel={item.external ? "noopener noreferrer" : undefined}
               className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors duration-150 ${
                 isActive
                   ? "bg-accent/10 text-accent"

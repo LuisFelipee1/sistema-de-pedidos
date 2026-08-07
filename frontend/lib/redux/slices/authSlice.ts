@@ -128,6 +128,7 @@ const authSlice = createSlice({
         state.refreshToken = action.payload.tokens.refresh;
         state.username = action.payload.me.username;
         state.roles = action.payload.me.roles;
+        state.restaurant = action.payload.me.restaurant;
       })
       .addCase(loginThunk.rejected, (state, action) => {
         state.status = "failed";
@@ -139,6 +140,7 @@ const authSlice = createSlice({
         state.refreshToken = action.payload.tokens.refresh;
         state.username = action.payload.me.username;
         state.roles = action.payload.me.roles;
+        state.restaurant = action.payload.me.restaurant;
       })
       .addCase(restoreSessionThunk.rejected, (state) => {
         state.initialized = true;

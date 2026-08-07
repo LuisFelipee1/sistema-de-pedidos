@@ -11,9 +11,9 @@ import { visibleNavItems } from "./nav-items";
  * navegação fica na altura do polegar em vez de escondida atrás de um menu. */
 export function MobileNav() {
   const pathname = usePathname();
-  const roles = useAppSelector((state) => state.auth.roles);
+  const { roles, restaurant } = useAppSelector((state) => state.auth);
 
-  const visibleItems = visibleNavItems(roles);
+  const visibleItems = visibleNavItems(roles, restaurant?.slug);
 
   return (
     <nav
@@ -28,6 +28,8 @@ export function MobileNav() {
           <Link
             key={item.href}
             href={item.href}
+            target={item.external ? "_blank" : undefined}
+            rel={item.external ? "noopener noreferrer" : undefined}
             aria-current={isActive ? "page" : undefined}
             className={`flex min-w-0 flex-1 flex-col items-center gap-1 px-1 py-2.5
               transition-colors duration-150 ${isActive ? "text-accent" : "text-ink-muted"}`}

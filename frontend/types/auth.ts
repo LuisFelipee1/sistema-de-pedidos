@@ -32,6 +32,7 @@ export interface Me {
   id: number;
   username: string;
   email: string;
-  restaurant: number | null;
+  /** Aninhado por causa do slug, que monta o link da vitrine pública. */
+  restaurant: Restaurant | null;
   roles: string[];
 }
