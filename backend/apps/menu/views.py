@@ -1,12 +1,17 @@
+from django.shortcuts import get_object_or_404
 from rest_framework import permissions, viewsets
 from rest_framework.generics import ListAPIView, RetrieveAPIView
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from apps.accounts.permissions import IsAdministrador, IsRestaurantStaff
 from apps.restaurants.mixins import RestaurantFromSlugMixin, RestaurantScopedQuerysetMixin
 
+from . import services
 from .models import AddonGroup, AddonOption, Category, Product
 from .serializers import (
     AddonGroupSerializer,
+    AddonGroupsReplaceSerializer,
     AddonOptionSerializer,
     CategorySerializer,
     ProductSerializer,
@@ -68,6 +73,22 @@ class ProductViewSet(
 ):
     serializer_class = ProductSerializer
     queryset = Product.objects.all()
+
+
+class ProductAddonGroupsView(APIView):
+    """Substitui todas as perguntas do produto de uma vez."""
+
+    permission_classes = [IsAdministrador]
+
+    def put(self, request, pk):
+        product = get_object_or_404(
+            Product, pk=pk, restaurant_id=request.user.restaurant_id
+        )
+        serializer = AddonGroupsReplaceSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        services.replace_addon_groups(product, serializer.validated_data["groups"])
+        product.refresh_from_db()
+        return Response(ProductSerializer(product, context={"request": request}).data)
 
 
 class AddonGroupViewSet(viewsets.ModelViewSet):
