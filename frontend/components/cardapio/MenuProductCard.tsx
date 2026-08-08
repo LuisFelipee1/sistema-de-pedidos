@@ -2,21 +2,29 @@
 
 import { motion } from "framer-motion";
 import Image from "next/image";
-import { FiPlus } from "react-icons/fi";
+import { FiChevronRight } from "react-icons/fi";
 
 import { formatCurrency } from "@/lib/format";
 import type { Product } from "@/types/menu";
 
 export interface MenuProductCardProps {
   product: Product;
-  /** Quantidade já no carrinho, para o cliente ver o que somou. */
+  /** Quantidade já no carrinho, somando todas as variações do produto. */
   quantity: number;
-  onAdd: (product: Product) => void;
+  onSelect: (product: Product) => void;
 }
 
-export function MenuProductCard({ product, quantity, onAdd }: MenuProductCardProps) {
+export function MenuProductCard({ product, quantity, onSelect }: MenuProductCardProps) {
   return (
-    <article className="flex items-start gap-3 rounded-2xl border border-border bg-surface p-3 sm:p-4">
+    <motion.button
+      type="button"
+      onClick={() => onSelect(product)}
+      whileTap={{ scale: 0.99 }}
+      transition={{ type: "spring", stiffness: 400, damping: 24 }}
+      aria-label={`Ver ${product.name}`}
+      className="flex w-full items-start gap-3 rounded-2xl border border-border bg-surface p-3
+        text-left transition-colors hover:border-accent sm:p-4"
+    >
       {product.image && (
         <Image
           src={product.image}
@@ -35,26 +43,17 @@ export function MenuProductCard({ product, quantity, onAdd }: MenuProductCardPro
         <p className="mt-auto font-bold text-ink tabular-nums">{formatCurrency(product.price)}</p>
       </div>
 
-      <motion.button
-        type="button"
-        onClick={() => onAdd(product)}
-        whileTap={{ scale: 0.9 }}
-        transition={{ type: "spring", stiffness: 400, damping: 20 }}
-        aria-label={`Adicionar ${product.name} ao carrinho`}
-        className="relative flex size-11 shrink-0 items-center justify-center rounded-xl
-          bg-accent text-accent-ink shadow-sm shadow-accent/30"
-      >
-        <FiPlus size={20} />
+      <span className="flex shrink-0 items-center gap-2 self-center">
         {quantity > 0 && (
           <span
-            className="absolute -top-1.5 -right-1.5 flex min-w-5 items-center justify-center
-              rounded-full border-2 border-surface bg-ink px-1 text-[11px] font-bold text-paper
-              tabular-nums"
+            className="flex min-w-6 items-center justify-center rounded-full bg-accent px-1.5
+              py-0.5 text-xs font-bold text-accent-ink tabular-nums"
           >
             {quantity}
           </span>
         )}
-      </motion.button>
-    </article>
+        <FiChevronRight size={20} className="text-ink-muted" aria-hidden />
+      </span>
+    </motion.button>
   );
 }

@@ -24,6 +24,11 @@ export async function fetchPublicProducts(slug: string): Promise<Product[]> {
   return data.results;
 }
 
+export async function fetchPublicProduct(slug: string, productId: number): Promise<Product> {
+  const { data } = await apiClient.get<Product>(`/api/r/${slug}/products/${productId}/`);
+  return data;
+}
+
 // --- Configurações do dono ---
 
 export async function fetchMyRestaurant(): Promise<RestaurantSettings> {

@@ -1,5 +1,11 @@
 import type { PaginatedResponse } from "@/types/common";
-import type { Category, CategoryPayload, Product, ProductPayload } from "@/types/menu";
+import type {
+  AddonGroupInput,
+  Category,
+  CategoryPayload,
+  Product,
+  ProductPayload,
+} from "@/types/menu";
 
 import { apiClient } from "./client";
 
@@ -58,6 +64,30 @@ export async function updateProduct(
     { headers: { "Content-Type": "multipart/form-data" } },
   );
   return data;
+}
+
+export async function fetchProduct(id: number): Promise<Product> {
+  const { data } = await apiClient.get<Product>(`/api/products/${id}/`);
+  return data;
+}
+
+/** Substitui a árvore inteira de perguntas numa transação só. */
+export async function replaceAddonGroups(
+  productId: number,
+  groups: AddonGroupInput[],
+): Promise<Product> {
+  const { data } = await apiClient.put<Product>(`/api/products/${productId}/addon-groups/`, {
+    groups,
+  });
+  return data;
+}
+
+export async function uploadAddonOptionImage(optionId: number, image: File): Promise<void> {
+  const form = new FormData();
+  form.append("image", image);
+  await apiClient.patch(`/api/addon-options/${optionId}/`, form, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
 }
 
 export async function deleteProduct(id: number): Promise<void> {

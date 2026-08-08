@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { use, useEffect, useMemo, useState } from "react";
 import { FiLoader, FiSearch } from "react-icons/fi";
 
@@ -13,14 +14,12 @@ import {
   fetchPublicProducts,
   fetchPublicRestaurant,
 } from "@/lib/api/restaurant";
-import { loadCart } from "@/lib/cart-storage";
 import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks";
 import {
-  addItem,
   cartItemCount,
   cartTotal,
   decrementItem,
-  hydrateCart,
+  incrementItem,
   removeItem,
 } from "@/lib/redux/slices/cartSlice";
 import type { Category, Product } from "@/types/menu";
@@ -30,6 +29,7 @@ const ALL = "todas";
 
 export default function CardapioPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = use(params);
+  const router = useRouter();
   const dispatch = useAppDispatch();
   const items = useAppSelector((state) => state.cart.items);
 
@@ -73,11 +73,6 @@ export default function CardapioPage({ params }: { params: Promise<{ slug: strin
     };
   }, [slug]);
 
-  // localStorage só existe no navegador, então a leitura fica fora da render.
-  useEffect(() => {
-    dispatch(hydrateCart({ slug, saved: loadCart() }));
-  }, [dispatch, slug]);
-
   const categoryOptions = useMemo<FilterChipOption<string>[]>(() => {
     const withProducts = categories.filter((category) =>
       products.some((product) => product.category === category.id),
@@ -114,8 +109,11 @@ export default function CardapioPage({ params }: { params: Promise<{ slug: strin
 
   const itemCount = cartItemCount(items);
   const total = cartTotal(items);
+  /** Soma todas as variações do mesmo produto no carrinho. */
   const quantityOf = (productId: number) =>
-    items.find((item) => item.product_id === productId)?.quantity ?? 0;
+    items
+      .filter((item) => item.product_id === productId)
+      .reduce((total, item) => total + item.quantity, 0);
 
   if (isLoading) {
     return (
@@ -184,7 +182,9 @@ export default function CardapioPage({ params }: { params: Promise<{ slug: strin
                     <MenuProductCard
                       product={product}
                       quantity={quantityOf(product.id)}
-                      onAdd={(picked) => dispatch(addItem(picked))}
+                      onSelect={(picked) =>
+                        router.push(`/cardapio/${slug}/produto/${picked.id}`)
+                      }
                     />
                   </li>
                 ))}
@@ -200,12 +200,9 @@ export default function CardapioPage({ params }: { params: Promise<{ slug: strin
         <CartReview
           items={items}
           total={total}
-          onIncrement={(productId) => {
-            const product = products.find((entry) => entry.id === productId);
-            if (product) dispatch(addItem(product));
-          }}
-          onDecrement={(productId) => dispatch(decrementItem(productId))}
-          onRemove={(productId) => dispatch(removeItem(productId))}
+          onIncrement={(key) => dispatch(incrementItem(key))}
+          onDecrement={(key) => dispatch(decrementItem(key))}
+          onRemove={(key) => dispatch(removeItem(key))}
         />
       </Modal>
     </div>

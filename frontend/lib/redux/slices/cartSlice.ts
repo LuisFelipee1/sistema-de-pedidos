@@ -1,6 +1,6 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
-import type { CartItem, CartSnapshot } from "@/types/cart";
+import { unitPrice, type CartItem, type CartItemOption, type CartSnapshot } from "@/types/cart";
 import type { Product } from "@/types/menu";
 
 interface CartState {
@@ -18,6 +18,15 @@ const initialState: CartState = {
   hydrated: false,
 };
 
+/** Duas linhas se somam só quando é o mesmo produto com as mesmas escolhas. */
+function signature(productId: number, options: CartItemOption[]): string {
+  const ids = options
+    .map((option) => option.option_id)
+    .sort((a, b) => a - b)
+    .join("-");
+  return `${productId}:${ids}`;
+}
+
 const cartSlice = createSlice({
   name: "cart",
   initialState,
@@ -29,32 +38,44 @@ const cartSlice = createSlice({
       state.slug = slug;
       state.items = saved && saved.slug === slug ? saved.items : [];
     },
-    addItem(state, action: PayloadAction<Product>) {
-      const product = action.payload;
-      const existing = state.items.find((item) => item.product_id === product.id);
+    addItem(
+      state,
+      action: PayloadAction<{ product: Product; options?: CartItemOption[]; quantity?: number }>,
+    ) {
+      const { product, options = [], quantity = 1 } = action.payload;
+      const key = signature(product.id, options);
+      const existing = state.items.find((item) => item.key === key);
+
       if (existing) {
-        existing.quantity += 1;
+        existing.quantity += quantity;
         return;
       }
+
       state.items.push({
+        key,
         product_id: product.id,
         name: product.name,
-        price: product.price,
         image: product.image,
-        quantity: 1,
+        price: product.price,
+        options,
+        quantity,
       });
     },
-    decrementItem(state, action: PayloadAction<number>) {
-      const item = state.items.find((entry) => entry.product_id === action.payload);
+    incrementItem(state, action: PayloadAction<string>) {
+      const item = state.items.find((entry) => entry.key === action.payload);
+      if (item) item.quantity += 1;
+    },
+    decrementItem(state, action: PayloadAction<string>) {
+      const item = state.items.find((entry) => entry.key === action.payload);
       if (!item) return;
       if (item.quantity <= 1) {
-        state.items = state.items.filter((entry) => entry.product_id !== action.payload);
+        state.items = state.items.filter((entry) => entry.key !== action.payload);
         return;
       }
       item.quantity -= 1;
     },
-    removeItem(state, action: PayloadAction<number>) {
-      state.items = state.items.filter((entry) => entry.product_id !== action.payload);
+    removeItem(state, action: PayloadAction<string>) {
+      state.items = state.items.filter((entry) => entry.key !== action.payload);
     },
     clearCart(state) {
       state.items = [];
@@ -62,7 +83,8 @@ const cartSlice = createSlice({
   },
 });
 
-export const { hydrateCart, addItem, decrementItem, removeItem, clearCart } = cartSlice.actions;
+export const { hydrateCart, addItem, incrementItem, decrementItem, removeItem, clearCart } =
+  cartSlice.actions;
 export default cartSlice.reducer;
 
 // --- Seletores derivados ---
@@ -72,5 +94,5 @@ export function cartItemCount(items: CartItem[]): number {
 }
 
 export function cartTotal(items: CartItem[]): number {
-  return items.reduce((total, item) => total + Number(item.price) * item.quantity, 0);
+  return items.reduce((total, item) => total + unitPrice(item) * item.quantity, 0);
 }

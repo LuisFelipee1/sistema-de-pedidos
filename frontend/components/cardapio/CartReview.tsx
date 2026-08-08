@@ -5,14 +5,14 @@ import { FiMinus, FiPlus, FiTrash2 } from "react-icons/fi";
 
 import { Button, Text } from "@/components/ui";
 import { formatCurrency } from "@/lib/format";
-import type { CartItem } from "@/types/cart";
+import { unitPrice, type CartItem } from "@/types/cart";
 
 export interface CartReviewProps {
   items: CartItem[];
   total: number;
-  onIncrement: (productId: number) => void;
-  onDecrement: (productId: number) => void;
-  onRemove: (productId: number) => void;
+  onIncrement: (key: string) => void;
+  onDecrement: (key: string) => void;
+  onRemove: (key: string) => void;
 }
 
 export function CartReview({
@@ -32,9 +32,9 @@ export function CartReview({
 
   return (
     <div className="flex flex-col gap-5">
-      <ul className="flex flex-col gap-3">
+      <ul className="flex flex-col gap-4">
         {items.map((item) => (
-          <li key={item.product_id} className="flex items-start gap-3">
+          <li key={item.key} className="flex items-start gap-3">
             {item.image && (
               <Image
                 src={item.image}
@@ -49,15 +49,31 @@ export function CartReview({
               <div className="flex items-start justify-between gap-2">
                 <span className="min-w-0 flex-1 font-medium text-ink">{item.name}</span>
                 <span className="shrink-0 font-bold text-ink tabular-nums">
-                  {formatCurrency(Number(item.price) * item.quantity)}
+                  {formatCurrency(unitPrice(item) * item.quantity)}
                 </span>
               </div>
+
+              {item.options.length > 0 && (
+                <ul className="flex flex-col gap-0.5">
+                  {item.options.map((option) => (
+                    <li key={option.option_id} className="text-sm text-ink-muted">
+                      {option.option_name}
+                      {Number(option.price_delta) > 0 && (
+                        <span className="text-success">
+                          {" "}
+                          + {formatCurrency(option.price_delta)}
+                        </span>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              )}
 
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-3 rounded-full border border-border px-2 py-1">
                   <button
                     type="button"
-                    onClick={() => onDecrement(item.product_id)}
+                    onClick={() => onDecrement(item.key)}
                     aria-label={`Diminuir ${item.name}`}
                     className="flex size-8 items-center justify-center rounded-full text-ink
                       transition-colors hover:text-accent"
@@ -69,7 +85,7 @@ export function CartReview({
                   </span>
                   <button
                     type="button"
-                    onClick={() => onIncrement(item.product_id)}
+                    onClick={() => onIncrement(item.key)}
                     aria-label={`Aumentar ${item.name}`}
                     className="flex size-8 items-center justify-center rounded-full text-ink
                       transition-colors hover:text-accent"
@@ -80,7 +96,7 @@ export function CartReview({
 
                 <button
                   type="button"
-                  onClick={() => onRemove(item.product_id)}
+                  onClick={() => onRemove(item.key)}
                   aria-label={`Remover ${item.name}`}
                   className="flex size-9 items-center justify-center rounded-lg text-ink-muted
                     transition-colors hover:text-danger"
