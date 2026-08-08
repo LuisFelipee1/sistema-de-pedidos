@@ -111,7 +111,7 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 # Media files (uploads, ex: fotos de produtos).
 # Em produção isso é substituído por object storage (ver prod.py) — o
 # filesystem do Railway não é persistente entre deploys.
-MEDIA_URL = "media/"
+MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
 # Django REST Framework
